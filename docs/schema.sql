@@ -1,0 +1,37 @@
+-- 1. 사용자 테이블 (users)
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    student_id VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER', -- USER, ADMIN
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. 기자재 테이블 (equipments)
+CREATE TABLE equipments (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE', -- AVAILABLE, RENTED, MAINTENANCE
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. QR 코드 테이블 (qr_codes)
+CREATE TABLE qr_codes (
+    id BIGSERIAL PRIMARY KEY,
+    equipment_id BIGINT NOT NULL REFERENCES equipments(id) ON DELETE CASCADE,
+    qr_hash VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. 대여/반납 이력 테이블 (rentals)
+-- [문제 해결 반영]: equipment_id 및 user_id의 타입을 PK와 동일하게 BIGINT로 일치시킴
+CREATE TABLE rentals (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    equipment_id BIGINT NOT NULL REFERENCES equipments(id) ON DELETE CASCADE,
+    rented_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    returned_at TIMESTAMP WITH TIME ZONE, -- 연체 계산 및 타임존 처리를 위한 TIMESTAMPTZ 적용
+    status VARCHAR(20) NOT NULL DEFAULT 'RENTED' -- RENTED, RETURNED, OVERDUE
+);
